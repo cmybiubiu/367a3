@@ -10,34 +10,26 @@ declare -a filearray=(
 "../data/dataset0"
 "../data/dataset1"
 "../data/dataset2"
+"../data/dataset3"
+"../data/dataset4"
+"../data/dataset5"
 )
 
 
 #-n:use Nested loop join, -m: use Sort-Merge join, -h use Hash join
-#join=-h
-
-declare -a joinarray=(
-"-n"
-"-m"
-"-h"
-)
+join=-h
 
 
-executable="./join-seq"
+executable="./join-seq" 
 
-# echo "join = $join"
+echo "join = $join"
 echo "option = $option"
 
 
 for filename in "${filearray[@]}"
 do
-	for join in "${joinarray[@]}"
-	do
-		#for (( i = 1; i <= 10; i++ ))
-		#do
-        	echo "filename = $filename"
-        	echo "join = $join"
-        	$executable $join $filename
-        #done
-    done
+        echo "filename = $filename"
+        $executable $join $filename	
+
 done
+

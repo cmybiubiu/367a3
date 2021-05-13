@@ -33,12 +33,7 @@ struct _hash_table_t {
 };
 
 
-// Create a hash table with 'size' buckets; the storage is allocated dynamically using malloc(); returns NULL on error
-void init_node(struct hash_node* node){
-	node->next = NULL;
-	node->key = -1;
-}
-
+/* Creating a new hash node */
 void create_node(struct hash_node* node, int key)
 {
 	node->key = key;
@@ -46,6 +41,7 @@ void create_node(struct hash_node* node, int key)
 
 }
 
+/* Create a new hash table */
 hash_table_t *hash_create(int size)
 {
 	assert(size > 0);
@@ -57,7 +53,7 @@ hash_table_t *hash_create(int size)
 	return hash_table;
 }
 
-// Release all memory used by the hash table, its buckets and entries
+/* Release all memory of a single bucket */
 void destroy_node(struct hash_node* node){
 	if (node == NULL)
 	{
@@ -68,6 +64,7 @@ void destroy_node(struct hash_node* node){
 	free(node);
 }
 
+/* Release all memory used by the hash table, its buckets and entries */
 void hash_destroy(hash_table_t *table)
 {
 	assert(table != NULL);
@@ -81,7 +78,7 @@ void hash_destroy(hash_table_t *table)
 }
 
 
-// Returns 0 if key is not found
+/* Search for a key in the hash table. Returns 0 if key is not found */
 int hash_get(hash_table_t *table, int key) {
 	assert(table != NULL);
 	int hash = key % table->size;
@@ -97,11 +94,12 @@ int hash_get(hash_table_t *table, int key) {
 	return 0;
 }
 
-// Returns 0 on success, -1 on failure
+/* Put a key in the hash table. Returns 0 on success, -1 on failure */
 int hash_put(hash_table_t *table, int key) {
 	assert(table != NULL);
 	int hash = key % table->size;
 
+	// Check first if this bucket is already initialized
 	if (table->node[hash] && table->node[hash]->key) {
 		struct hash_node *curr = table->node[hash];
 		while (curr->next != NULL) {

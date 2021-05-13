@@ -17,7 +17,6 @@
 #include "join.h"
 #include "options.h"
 #include "time_util.h"
-#include "hash.h"
 
 
 int main(int argc, char *argv[])
@@ -39,21 +38,8 @@ int main(int argc, char *argv[])
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	if (count < 0) goto end;
-	char *method = opt_nested ? "nested" : (opt_merge ? "merge" : "hash");
-	// printf("count: %d\n", count);
-	// printf("time: %f\n", timespec_to_msec(difftimespec(end, start)));
-	// printf("data: %s\n", path);
-	// printf("method:%s\n", method);
-
-
-	FILE *f = fopen("test1.txt", "a");
-	if (f == NULL) {
-		printf("could not open output file\n");
-		return -1;
-	}
-	fprintf(f, "method: %s data: %s time: %f\n", method, path, timespec_to_msec(difftimespec(end, start)));
-	fclose(f);
-
+	printf("%d\n", count);
+	printf("%f\n", timespec_to_msec(difftimespec(end, start)));
 	result = 0;
 
 end:

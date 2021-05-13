@@ -18,6 +18,7 @@
 #include "join.h"
 
 
+/* Nested loop implementation */
 int join_nested(const student_record *students, int students_count, const ta_record *tas, int tas_count)
 {
 	assert(students != NULL);
@@ -25,15 +26,6 @@ int join_nested(const student_record *students, int students_count, const ta_rec
 
 	int count = 0;
 
-	// for (int t = 0; t < tas_count; ++t) {
-	// 	for (int s = 0; s < students_count; ++s) {
-	// for (int s = 0; s < students_count; ++s) {
-	// 	for (int t = 0; t < tas_count; ++t) {
-	// 		if (tas[t].sid == students[s].sid && students[s].gpa > 3.0) {
-	// 			count ++;
-	// 		}
-	// 	}
-	// }
 	for (int s = 0; s < students_count; ++s) {
 		if (students[s].gpa > 3.0) {
 			for (int t = 0; t < tas_count; ++t) {
@@ -47,7 +39,7 @@ int join_nested(const student_record *students, int students_count, const ta_rec
 	return count;
 }
 
-// Assumes that records in both tables are already sorted by sid
+/* Sort-merge implementation. Assumes that records in both tables are already sorted by sid */
 int join_merge(const student_record *students, int students_count, const ta_record *tas, int tas_count)
 {
 	assert(students != NULL);
@@ -92,6 +84,7 @@ int join_merge(const student_record *students, int students_count, const ta_reco
 	return count;
 }
 
+/* Hash join implementation */
 int join_hash(const student_record *students, int students_count, const ta_record *tas, int tas_count)
 {
 	assert(students != NULL);
@@ -100,6 +93,7 @@ int join_hash(const student_record *students, int students_count, const ta_recor
 	int count = 0;
 
 	hash_table_t *hash_table = hash_create(students_count);
+	// We put student sid with above 3.0 gpa into hash table to reduce collision
 	for (int s = 0; s < students_count; ++s) {
 		if (students[s].gpa > 3.0) {
 			hash_put(hash_table, students[s].sid);

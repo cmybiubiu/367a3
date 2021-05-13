@@ -20,6 +20,7 @@
 #include "hash.h"
 
 
+/* Fragment-and-replicate implementation */
 int fragment_replicate(int opt_nthreads,
 	const student_record *students,
 	int students_count,
@@ -29,13 +30,15 @@ int fragment_replicate(int opt_nthreads,
 
 	int count = 0;
 
+	// Always partition on the larger table to get better performance
 	if (tas_count >= students_count) {
 		#pragma omp parallel for reduction(+:count)
 		for (int t = 0; t < opt_nthreads; ++t) {
 			int start = t * (tas_count / opt_nthreads);
 			int end = (t + 1) * (tas_count / opt_nthreads);
-			if (t == opt_nthreads - 1) end = tas_count;
-
+			if (t == opt_nthreads - 1) {
+				end = tas_count;
+			}
 			count += join_f(students, students_count, tas + start, end - start);
 		}
 	} else {
@@ -43,18 +46,18 @@ int fragment_replicate(int opt_nthreads,
 		for (int s = 0; s < opt_nthreads; ++s) {
 			int start = s * (students_count / opt_nthreads);
 			int end = (s + 1) * (students_count / opt_nthreads);
-			if (s == opt_nthreads - 1) end = students_count;
-
+			if (s == opt_nthreads - 1) {
+				end = students_count;
+			}
 			count += join_f(students + start, end - start, tas, tas_count);
 		}
 
 	}
-	
 
-	// for and sections use implicit barriers at the end, unless the nowait clause is present
 	return count;
 }
 
+/* Symmetric partitioning implementation */
 int symmetric_partitioning(int opt_nthreads,
 	const student_record *students,
 	int students_count,
@@ -69,26 +72,17 @@ int symmetric_partitioning(int opt_nthreads,
 
 	#pragma omp parallel for reduction(+: count)
 	for(int i = 0; i < opt_nthreads; ++i) {
+		// Partition on the student sid
 		int start_sid = i * ((max_sid - min_sid + 1) / opt_nthreads) + min_sid; // inclusive
 		int end_sid = (i + 1) * ((max_sid - min_sid + 1) / opt_nthreads) + min_sid; // exclusive
 		if (i == opt_nthreads - 1) {
 			end_sid = max_sid + 1;
 		}
 
+		// Look for upper and lower indices of the TA table corresponding to the upper and lower sids
+		// this thread got assigned to
 		int ta_start = -1; // inclusive
 		int ta_end = -1; // exclusive
-		// int student_start = -1; // inclusive
-		// int student_end = -1; // exclusive
-
-
-		// int s = 0;
-		// while (s < students_count && students[s].sid < end_sid) {
-		// 	if (student_start == -1 && students[s].sid >= start_sid) {
-		// 		student_start = s;
-		// 	}
-		// 	s ++;
-		// }
-		// student_end = s;
 
 		int t = 0;
 		while (t < tas_count && tas[t].sid < end_sid) {
@@ -99,6 +93,9 @@ int symmetric_partitioning(int opt_nthreads,
 		}
 		ta_end = t;
 
+		// Look for upper and lower indices of the Students table corresponding to the upper and lower sids
+		// this thread got assigned to. Can do it this way because the sid is unique and therefore indeces and
+		// sids are one-to-one.
 		int student_start = i * (students_count / opt_nthreads);
 		int student_end = (i + 1) * (students_count / opt_nthreads);
 		if (i == opt_nthreads - 1) student_end = students_count;
@@ -137,7 +134,7 @@ int main(int argc, char *argv[])
 
 	double t_start = omp_get_wtime();
 
-	//TODO: parallel join using OpenMP
+	// Parallel join using OpenMP
 	int count = -1;
 	if (opt_replicate) {
 		count = fragment_replicate(opt_nthreads, students, students_count, tas, tas_count, join_f);

@@ -18,11 +18,11 @@ declare -a filearray=(
 )
 
 #-n:use Nested loop join, -m: use Sort-Merge join, -h use Hash join
-join=-h
+join=-m
 
 # Parallel option, mandatory for the OpenMP version, ignored by the sequential version.
 #-r: use Fragment-and-Replication -s: use Symmetric partitioning
-option=-r
+option=-s
 
 #number of threads
 nthreads=4
@@ -31,14 +31,29 @@ echo "#join=$join"
 echo "#option=$option"
 echo "#nthreads=$nthreads"
 
+
 executable="./join-omp" 
 
 for filename in "${filearray[@]}"
 do
-    for (( i = 1; i <= 10; i++ ))
-    	do
-            echo "filename = $filename"
-            echo "join = $join"
-            $executable $join $option -t $nthreads $filename
-        done
+        echo "#filename = $filename"
+	$executable $join $option -t 1 $filename
+done
+
+for filename in "${filearray[@]}"
+do
+        echo "#filename = $filename"
+	$executable $join $option -t 2 $filename
+done
+
+for filename in "${filearray[@]}"
+do
+        echo "#filename = $filename"
+	$executable $join $option -t 4 $filename
+done
+
+for filename in "${filearray[@]}"
+do
+        echo "#filename = $filename"
+	$executable $join $option -t 8 $filename
 done
